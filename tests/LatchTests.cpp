@@ -1,8 +1,7 @@
 #include <catch2/catch_all.hpp>
-#include <Computations.h>
-#include <Deferrer.h>
-#include <Latch.h>
-#include <Var.h>
+#include <reactive/Computations.h>
+#include <reactive/Latch.h>
+#include <reactive/Var.h>
 
 using namespace Reactive;
 

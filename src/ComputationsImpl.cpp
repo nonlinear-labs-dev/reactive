@@ -1,6 +1,8 @@
+#include <reactive/Deferrer.h>
+
 #include "ComputationsImpl.h"
 #include "Computation.h"
-#include "Deferrer.h"
+
 #include <algorithm>
 
 namespace Reactive

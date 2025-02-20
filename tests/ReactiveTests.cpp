@@ -1,8 +1,8 @@
 #include <catch2/catch_all.hpp>
-#include <Computations.h>
-#include <Deferrer.h>
-#include <Latch.h>
-#include <Var.h>
+#include <reactive/Computations.h>
+#include <reactive/Deferrer.h>
+#include <reactive/Latch.h>
+#include <reactive/Var.h>
 
 using namespace Reactive;
 
@@ -30,13 +30,14 @@ TEST_CASE("reactive")
     Computations computations;
     int longLifeValue = 0;
 
-    computations.add([&]
-    {
-      longLifeValue = longLife->get();
+    computations.add(
+        [&]
+        {
+          longLifeValue = longLife->get();
 
-      if(shortLife)
-        shortLife->get();
-    });
+          if(shortLife)
+            shortLife->get();
+        });
 
     shortLife.reset();
 
@@ -53,11 +54,12 @@ TEST_CASE("reactive")
     Computations computations;
     int readValue = 0;
 
-    computations.add([&]
-    {
-      var = 9;
-      readValue = var.get();
-    });
+    computations.add(
+        [&]
+        {
+          var = 9;
+          readValue = var.get();
+        });
 
     THEN("value can be read without crashing")
     {
@@ -71,11 +73,12 @@ TEST_CASE("reactive")
     Computations computations;
     int readValue = 0;
 
-    computations.add([&]
-    {
-      readValue = var.get();
-      var = 9;
-    });
+    computations.add(
+        [&]
+        {
+          readValue = var.get();
+          var = 9;
+        });
 
     THEN("value can be read without crashing")
     {
@@ -187,20 +190,23 @@ TEST_CASE("reactive")
     int depth2 = 0;
     int depth3 = 0;
 
-    computations.add([&]
-    {
-      depth0++;
-
-      result = latch0.doLatch([&]
-      {
-        depth1++;
-        return latch1.doLatch([&]
+    computations.add(
+        [&]
         {
-          depth2++;
-          return var.get() / 2;
+          depth0++;
+
+          result = latch0.doLatch(
+              [&]
+              {
+                depth1++;
+                return latch1.doLatch(
+                    [&]
+                    {
+                      depth2++;
+                      return var.get() / 2;
+                    });
+              });
         });
-      });
-    });
 
     {
       Deferrer deferrer;

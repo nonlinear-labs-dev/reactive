@@ -5,10 +5,10 @@ project(reactive)
 set(CMAKE_CXX_STANDARD 20)
 
 set(PUBLIC_HEADERS
-    include/Computations.h
-    include/Deferrer.h
-    include/Latch.h
-    include/Var.h
+    include/reactive/Computations.h
+    include/reactive/Deferrer.h
+    include/reactive/Latch.h
+    include/reactive/Var.h
 )
 
 add_library(reactive STATIC

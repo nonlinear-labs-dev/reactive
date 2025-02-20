@@ -1,5 +1,6 @@
-#include "Var.h"
-#include "Deferrer.h"
+#include <reactive/Var.h>
+#include <reactive/Deferrer.h>
+
 #include "Computation.h"
 
 #include <cassert>
