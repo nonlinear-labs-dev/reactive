@@ -13,7 +13,10 @@ list(APPEND CMAKE_MODULE_PATH ${catch2_SOURCE_DIR}/extras)
 include(CTest)
 include(Catch)
 
-add_executable(reactive-tests ReactiveTests.cpp)
+add_executable(reactive-tests
+    LatchTests.cpp
+    ReactiveTests.cpp
+)
 target_include_directories(reactive-tests PUBLIC ${CATCH_LIB_INCLUDE_DIRS} ./ ../src ../include)
 target_link_libraries(reactive-tests PRIVATE reactive Catch2::Catch2WithMain)
 catch_discover_tests(reactive-tests)
