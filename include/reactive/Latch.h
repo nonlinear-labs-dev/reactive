@@ -24,9 +24,20 @@ namespace Reactive
         self.execute();
       }
 
-      Computation *getLowest(Computation *lowestSoFar) const override
+      Computation* getLowest(Computation* lowestSoFar) const override
       {
-        return self.m_dirty? self.m_computation.get() : nullptr;
+        if(!self.m_dirty)
+          self.resolveDirtynessDownstream();
+
+        if(!self.m_dirty)
+          return lowestSoFar;
+
+        auto my = self.m_computation.get();
+
+        if(!lowestSoFar)
+          return my;
+
+        return my->getDepth() < lowestSoFar->getDepth() ? lowestSoFar : my;
       }
     };
 

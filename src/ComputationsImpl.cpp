@@ -57,4 +57,4 @@ namespace Reactive
         lowestSoFar = it->get();
     return lowestSoFar;
   }
-}  // namespace Reactive
+}
