@@ -25,9 +25,7 @@ jobs:
       - name: Configure CMake
         run: |
           mkdir -p /home/runner/work/reactive/reactive/build/rootfs
-          cmake -B ${{github.workspace}}/build \ 
-            -DCMAKE_BUILD_TYPE=Release \
-            -DCMAKE_INSTALL_PREFIX=/home/runner/work/reactive/reactive/build/rootfs
+          cmake -B ${{github.workspace}}/build -DCMAKE_INSTALL_PREFIX=/home/runner/work/reactive/reactive/build/rootfs
 
       - name: Build Test Binaries
         run: |
