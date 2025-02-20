@@ -1,7 +1,7 @@
 #include <reactive/Deferrer.h>
+#include <reactive/Computation.h>
 
 #include "ComputationsImpl.h"
-#include "Computation.h"
 
 #include <algorithm>
 

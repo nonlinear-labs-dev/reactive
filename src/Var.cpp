@@ -1,7 +1,6 @@
 #include <reactive/Var.h>
 #include <reactive/Deferrer.h>
-
-#include "Computation.h"
+#include <reactive/Computation.h>
 
 #include <cassert>
 

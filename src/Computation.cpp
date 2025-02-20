@@ -1,7 +1,7 @@
 #include <reactive/Var.h>
 #include <reactive/Computations.h>
+#include <reactive/Computation.h>
 
-#include "Computation.h"
 #include "ComputationsImpl.h"
 
 #include <cassert>
