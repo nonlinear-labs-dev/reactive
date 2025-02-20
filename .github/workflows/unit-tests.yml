@@ -25,16 +25,15 @@ jobs:
       - name: Configure CMake
         run: |
           mkdir -p /home/runner/work/reactive/reactive/build/rootfs
-          cmake -B ${{github.workspace}}/build -DCMAKE_INSTALL_PREFIX=/home/runner/work/reactive/reactive/build/rootfs
+          cmake -B ${{github.workspace}}/build
 
       - name: Build Test Binaries
         run: |
-          make -C ${{github.workspace}}/build install
+          make -C ${{github.workspace}}/build
 
       - name: Run Tests
         run: |
           CTEST_OUTPUT_ON_FAILURE=On ctest -V --test-dir ${{github.workspace}}/build --output-junit ${{github.workspace}}/build/test-results.xml || true
-          chmod -R 777 /home/runner/work/reactive/reactive/build/rootfs
 
       - name: Publish Test Report
         uses: mikepenz/action-junit-report@v5
