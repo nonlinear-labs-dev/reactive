@@ -1,8 +1,10 @@
 #pragma once
 
+#include "Invalidateable.h"
+
 #include <unordered_set>
 #include <functional>
-#include "Invalidateable.h"
+#include <stdint.h>
 
 namespace Reactive
 {
@@ -33,10 +35,13 @@ namespace Reactive
     void unregisterVar(Detail::VarBase *v);
     void resolveDirtynessDownstream();
 
+    uint32_t getDepth() const;
+
    private:
     std::unordered_set<Detail::VarBase *> m_registeredVars;
     Invalidateable &m_owner;
     Callback m_cb;
+    uint32_t m_depth;
   };
 
 }

@@ -24,6 +24,11 @@ add_library(reactive STATIC
         src/Var.cpp
 )
 
+if(CMAKE_BUILD_TYPE MATCHES "Debug")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fsanitize=address -fno-omit-frame-pointer")
+    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -fsanitize=address")
+endif()
+
 target_include_directories(reactive PRIVATE ./src)
 target_include_directories(reactive PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
 

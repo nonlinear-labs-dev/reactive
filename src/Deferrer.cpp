@@ -1,3 +1,5 @@
+#include "reactive/Computation.h"
+
 #include <reactive/Deferrer.h>
 #include <reactive/Deferrable.h>
 
@@ -23,16 +25,34 @@ namespace Reactive
 
       auto cp = std::move(m_pending);
 
-      for(auto &w : cp)
-        if(auto s = w.lock())
-          s->doDeferred();
+
+      while(true)
+      {
+        std::pair<Deferrable *, Computation *> lowestDepth = { nullptr, nullptr };
+
+        for(auto &w : cp)
+        {
+          if(auto s = w.lock())
+          {
+            auto newLowestDepth = s->getLowest(lowestDepth.second);
+
+            if(newLowestDepth != lowestDepth.second)
+              lowestDepth = {s.get(), newLowestDepth};
+          }
+        }
+
+        if(lowestDepth.first && lowestDepth.second)
+          lowestDepth.first->doDeferred(lowestDepth.second);
+        else
+          break;
+      }
     }
   }
 
   void Deferrer::add(std::shared_ptr<Deferrable> pending)
   {
     if(!tl_deferrer)
-      pending->doDeferred();
+      pending->doDeferred(pending->getLowest(nullptr));
     else
       tl_deferrer->m_pending.push_back(pending);
   }

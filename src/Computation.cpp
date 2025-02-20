@@ -13,6 +13,7 @@ namespace Reactive
   Computation::Computation(Invalidateable &owner, Callback &&cb)
       : m_owner(owner)
       , m_cb(std::move(cb))
+      , m_depth(getCurrentComputation() ? getCurrentComputation()->m_depth + 1 : 1)
   {
   }
 
@@ -62,5 +63,10 @@ namespace Reactive
   {
     for(const auto v : m_registeredVars)
       v->resolveDirtynessDownstream();
+  }
+
+  uint32_t Computation::getDepth() const
+  {
+    return m_depth;
   }
 }

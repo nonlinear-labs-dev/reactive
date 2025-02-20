@@ -18,12 +18,13 @@ namespace Reactive
 
   void ComputationsImpl::invalidate(Computation *c)
   {
-    m_pending.push_back(c->expropriateCallback());
-
     auto it = std::find_if(m_computations.begin(), m_computations.end(), [&](auto &m) { return m.get() == c; });
 
     if(it != m_computations.end())
+    {
+      m_pending.push_back(std::move(*it));
       m_computations.erase(it);
+    }
 
     if(m_pending.size() == 1)
       Deferrer::add(shared_from_this());
@@ -33,12 +34,27 @@ namespace Reactive
   {
   }
 
-  void ComputationsImpl::doDeferred()
+  void ComputationsImpl::doDeferred(Computation *c)
   {
-    std::vector<std::function<void()>> c;
-    std::swap(c, m_pending);
+    auto it = std::find_if(m_pending.begin(), m_pending.end(), [&](auto &m) { return m.get() == c; });
 
-    for(auto &&k : c)
-      add(std::move(k));
+    if(it != m_pending.end())
+    {
+      auto p = std::move(*it);
+      m_pending.erase(it);
+      auto cb = std::move(p->expropriateCallback());
+      p.reset();
+      add(std::move(cb));
+    }
   }
-}
+
+  Computation *ComputationsImpl::getLowest(Computation *lowestSoFar) const
+  {
+    for(auto it = m_pending.begin(); it != m_pending.end(); it++)
+      if(!lowestSoFar)
+        lowestSoFar = it->get();
+      else if((*it)->getDepth() < lowestSoFar->getDepth())
+        lowestSoFar = it->get();
+    return lowestSoFar;
+  }
+}  // namespace Reactive

@@ -20,10 +20,11 @@ namespace Reactive
     void add(std::function<void()> &&cb);
     void invalidate(Computation *c) override;
     void resolveDirtynessDownstream() override;
-    void doDeferred() override;
+    void doDeferred(Computation *c) override;
+    Computation *getLowest(Computation *lowestSoFar) const override;
 
    private:
     std::vector<std::unique_ptr<Computation>> m_computations;
-    std::vector<std::function<void()>> m_pending;
+    std::vector<std::unique_ptr<Computation>> m_pending;
   };
 }

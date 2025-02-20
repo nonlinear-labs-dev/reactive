@@ -11,12 +11,10 @@ TEST_CASE("Latch")
   {
     const std::string &getValue() const
     {
-      return m_latch.doLatch(
-          [this]
-          {
-            m_executionCount++;
-            return std::to_string(m_value);
-          });
+      return m_latch.doLatch([this] {
+        m_executionCount++;
+        return std::to_string(m_value);
+      });
     }
 
     Var<int> m_value { 0 };
@@ -99,18 +97,14 @@ TEST_CASE("Latch")
     Computations outer;
     Computations inner;
 
-    outer.add(
-        [&]
-        {
-          outerCounter++;
+    outer.add([&] {
+      outerCounter++;
 
-          inner.add(
-              [&]
-              {
-                innerCounter++;
-                readValue = user.getValue();
-              });
-        });
+      inner.add([&] {
+        innerCounter++;
+        readValue = user.getValue();
+      });
+    });
 
     REQUIRE(innerCounter == 1);
     REQUIRE(outerCounter == 1);
@@ -134,6 +128,54 @@ TEST_CASE("Latch")
           CHECK(innerCounter == 2);
           CHECK(outerCounter == 1);
         }
+      }
+    }
+  }
+}
+
+TEST_CASE("Computation sorting")
+{
+  WHEN("Computations are nested")
+  {
+    int outerCalls = 0;
+    int innerCalls = 0;
+
+    Var<int> usedFromOuter;
+    Var<int> usedFromInner;
+
+    Computations outer;
+    std::unique_ptr<Computations> inner;
+
+    outer.add([&] {
+      outerCalls++;
+      usedFromOuter.get();
+
+      inner = std::make_unique<Computations>();
+
+      inner->add([&] {
+        innerCalls++;
+        usedFromInner.get();
+      });
+    });
+
+    AND_WHEN("Both computations are invalidated, inner first")
+    {
+      {
+        Deferrer deferred;
+        usedFromInner = 1;
+        usedFromOuter = 1;
+      }
+
+      THEN("Both computations are executed only twice")
+      {
+        /*
+         * If computations were not sorted from outside-in, then innermost
+         * computation would be calculated first (usedFromInner was modified first).
+         * But we already know that outer computation is invalid, so could be the
+         * data references by inner. Also, it saves a useless execution of inner.
+         */
+        CHECK(outerCalls == 2);
+        CHECK(innerCalls == 2);
       }
     }
   }

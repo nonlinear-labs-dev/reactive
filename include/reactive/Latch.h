@@ -19,9 +19,14 @@ namespace Reactive
       {
       }
 
-      void doDeferred() override
+      void doDeferred(Computation*) override
       {
         self.execute();
+      }
+
+      Computation *getLowest(Computation *lowestSoFar) const override
+      {
+        return self.m_dirty? self.m_computation.get() : nullptr;
       }
     };
 

@@ -2,10 +2,16 @@
 
 namespace Reactive
 {
+  class Computation;
+}
+namespace Reactive
+{
   class Deferrable
   {
    public:
     Deferrable() = default;
-    virtual void doDeferred() = 0;
+
+    virtual Computation *getLowest(Computation *lowestSoFar) const = 0;
+    virtual void doDeferred(Computation *c) = 0;
   };
 }
