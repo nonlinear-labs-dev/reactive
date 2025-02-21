@@ -29,7 +29,13 @@ namespace Reactive
   {
     auto pThis = this;
     std::swap(tl_currentComputation, pThis);
-    m_cb();
+    try
+    {
+      m_cb();
+    }
+    catch(...)
+    {
+    }
     std::swap(tl_currentComputation, pThis);
   }
 
