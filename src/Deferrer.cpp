@@ -22,38 +22,24 @@ namespace Reactive
     if(tl_deferrer == this)
     {
       tl_deferrer = nullptr;
-
-      auto cp = std::move(m_pending);
-
-
-      while(true)
+      while(!m_pending.empty())
       {
-        std::pair<Deferrable *, Computation *> lowestDepth = { nullptr, nullptr };
+        auto [depth, weak_ptr] = m_pending.top();
+        m_pending.pop();
 
-        for(auto &w : cp)
+        if(const auto s = weak_ptr.lock())
         {
-          if(auto s = w.lock())
-          {
-            auto newLowestDepth = s->getLowest(lowestDepth.second);
-
-            if(newLowestDepth != lowestDepth.second)
-              lowestDepth = {s.get(), newLowestDepth};
-          }
+          s->doDeferred(s->getLowest(nullptr));
         }
-
-        if(lowestDepth.first && lowestDepth.second)
-          lowestDepth.first->doDeferred(lowestDepth.second);
-        else
-          break;
       }
     }
   }
 
-  void Deferrer::add(std::shared_ptr<Deferrable> pending)
+  void Deferrer::add(const std::shared_ptr<Deferrable> &pending)
   {
     if(!tl_deferrer)
       pending->doDeferred(pending->getLowest(nullptr));
     else
-      tl_deferrer->m_pending.push_back(pending);
+      tl_deferrer->m_pending.push(tPendingEntry { pending->getLowest(nullptr)->getDepth(), pending });
   }
 }
