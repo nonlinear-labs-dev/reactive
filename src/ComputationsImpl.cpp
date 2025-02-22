@@ -50,11 +50,24 @@ namespace Reactive
 
   Computation *ComputationsImpl::getLowest(Computation *lowestSoFar) const
   {
-    for(auto it = m_pending.begin(); it != m_pending.end(); it++)
-      if(!lowestSoFar)
-        lowestSoFar = it->get();
-      else if((*it)->getDepth() < lowestSoFar->getDepth())
-        lowestSoFar = it->get();
-    return lowestSoFar;
+    if(m_pending.empty())
+    {
+      return lowestSoFar;
+    }
+
+    if(!lowestSoFar)
+    {
+      return m_pending.front().get();
+    }
+
+    Computation *lowest = m_pending.front().get();
+    for(const auto &comp : m_pending)
+    {
+      if(comp->getDepth() < lowest->getDepth())
+      {
+        lowest = comp.get();
+      }
+    }
+    return lowest;
   }
 }

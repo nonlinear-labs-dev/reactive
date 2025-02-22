@@ -6,16 +6,48 @@
 
 using namespace Reactive;
 
+namespace std
+{
+  template <> struct hash<std::weak_ptr<Deferrable>>
+  {
+    size_t operator()(const std::weak_ptr<Deferrable> &w) const noexcept
+    {
+      return std::hash<void *>()(w.lock().get());
+    }
+  };
+
+}
+
 namespace Reactive
 {
   struct DeferrerTester
   {
     static bool areElementsInPendingUnique(Deferrer &p)
     {
-      for(auto &c : p.m_pending)
-        if(std::count_if(p.m_pending.begin(), p.m_pending.end(), [&](auto &a) { return a.lock() == c.lock(); }) > 1)
-          return false;
+      using tWeak = std::weak_ptr<Deferrable>;
 
+      struct Equal
+      {
+        bool operator()(const tWeak &a, const tWeak &b) const
+        {
+          return a.lock().get() == b.lock().get();
+        }
+      };
+
+      std::unordered_set<tWeak, std::hash<tWeak>, Equal> seen {};
+
+      auto tempQueue = p.m_pending;
+      while(!tempQueue.empty())
+      {
+        auto w = tempQueue.top().second;
+        tempQueue.pop();
+
+        if(seen.contains(w))
+        {
+          return false;
+        }
+        seen.insert(w);
+      }
       return true;
     }
   };

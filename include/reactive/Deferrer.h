@@ -1,6 +1,7 @@
 #pragma once
 
 #include <memory>
+#include <queue>
 #include <vector>
 
 namespace Reactive
@@ -13,10 +14,21 @@ namespace Reactive
     Deferrer();
     ~Deferrer();
 
-    static void add(std::shared_ptr<Deferrable> pending);
+    static void add(const std::shared_ptr<Deferrable>& pending);
 
    private:
-    std::vector<std::weak_ptr<Deferrable>> m_pending;
+    using tDepth = int;
+    using tPendingEntry = std::pair<tDepth, std::weak_ptr<Deferrable>>;
+
+    struct Comperator
+    {
+      bool operator()(const tPendingEntry& lhs, const tPendingEntry& rhs) const
+      {
+        return lhs.first > rhs.first;
+      }
+    };
+
+    std::priority_queue<tPendingEntry, std::vector<tPendingEntry>, Comperator> m_pending;
 
     friend struct DeferrerTester;
   };
