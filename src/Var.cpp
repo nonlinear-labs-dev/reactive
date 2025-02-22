@@ -35,8 +35,7 @@ namespace Reactive::Detail
 
   void VarBase::onWriteAccess() const
   {
-    Deferrer deferer;
-
+    Deferrer deferrer;
     auto current = Computation::getCurrentComputation();
 
     m_computationsLocked = true;

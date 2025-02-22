@@ -42,7 +42,9 @@ namespace Reactive
         }
 
         if(lowestDepth.first && lowestDepth.second)
+        {
           lowestDepth.first->doDeferred(lowestDepth.second);
+        }
         else
           break;
       }
@@ -51,9 +53,9 @@ namespace Reactive
 
   void Deferrer::add(std::shared_ptr<Deferrable> pending)
   {
-    if(tl_deferrer)
-      tl_deferrer->m_pending.push_back(pending);
+    if(!tl_deferrer)
+      pending->doDeferred(pending->getLowest(nullptr));
     else
-      std::cerr << "Deferrer missing, deferrable ignored" << std::endl;
+      tl_deferrer->m_pending.push_back(pending);
   }
 }
