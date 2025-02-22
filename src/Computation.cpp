@@ -3,6 +3,7 @@
 #include <reactive/Computation.h>
 
 #include "ComputationsImpl.h"
+#include "reactive/Deferrer.h"
 
 #include <cassert>
 
@@ -67,6 +68,7 @@ namespace Reactive
 
   void Computation::resolveDirtynessDownstream()
   {
+    Deferrer deferrer;
     for(const auto v : m_registeredVars)
       v->resolveDirtynessDownstream();
   }
