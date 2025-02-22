@@ -5,6 +5,7 @@
 
 #include <algorithm>
 #include <chrono>
+#include <iostream>
 
 namespace Reactive
 {
@@ -25,7 +26,6 @@ namespace Reactive
 
       auto cp = std::move(m_pending);
 
-
       while(true)
       {
         std::pair<Deferrable *, Computation *> lowestDepth = { nullptr, nullptr };
@@ -37,7 +37,7 @@ namespace Reactive
             auto newLowestDepth = s->getLowest(lowestDepth.second);
 
             if(newLowestDepth != lowestDepth.second)
-              lowestDepth = {s.get(), newLowestDepth};
+              lowestDepth = { s.get(), newLowestDepth };
           }
         }
 
@@ -51,9 +51,9 @@ namespace Reactive
 
   void Deferrer::add(std::shared_ptr<Deferrable> pending)
   {
-    if(!tl_deferrer)
-      pending->doDeferred(pending->getLowest(nullptr));
-    else
+    if(tl_deferrer)
       tl_deferrer->m_pending.push_back(pending);
+    else
+      std::cerr << "Deferrer missing, deferrable ignored" << std::endl;
   }
 }
