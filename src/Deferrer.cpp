@@ -5,6 +5,7 @@
 
 #include <algorithm>
 #include <chrono>
+#include <iostream>
 
 namespace Reactive
 {
@@ -25,7 +26,6 @@ namespace Reactive
 
       auto cp = std::move(m_pending);
 
-
       while(true)
       {
         std::pair<Deferrable *, Computation *> lowestDepth = { nullptr, nullptr };
@@ -37,12 +37,14 @@ namespace Reactive
             auto newLowestDepth = s->getLowest(lowestDepth.second);
 
             if(newLowestDepth != lowestDepth.second)
-              lowestDepth = {s.get(), newLowestDepth};
+              lowestDepth = { s.get(), newLowestDepth };
           }
         }
 
         if(lowestDepth.first && lowestDepth.second)
+        {
           lowestDepth.first->doDeferred(lowestDepth.second);
+        }
         else
           break;
       }
