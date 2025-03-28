@@ -21,7 +21,7 @@ namespace Reactive
 
       void unregisterComputation(Computation *c) const;
 
-      virtual void resolveDirtynessDownstream() { };
+      virtual void resolveDirtynessDownstream() {};
 
      protected:
       void onReadAccess() const;
@@ -89,6 +89,22 @@ namespace Reactive
     {
       onReadAccess();
       return m_value;
+    }
+
+    bool operator==(const Var<T> &other) const
+    {
+      return m_value == other.m_value;
+    }
+
+    bool operator==(const T &other) const
+    {
+      return m_value == other;
+    }
+
+    template <typename F> void modify(const F &func)
+    {
+      func(m_value);
+      onWriteAccess();
     }
 
    private:
