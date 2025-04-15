@@ -43,6 +43,7 @@ namespace Reactive
 
         if(lowestDepth.first && lowestDepth.second)
         {
+          Deferrer deferrer;
           lowestDepth.first->doDeferred(lowestDepth.second);
         }
         else
