@@ -42,7 +42,9 @@ namespace Reactive
   template <typename T> class Var : public Detail::VarBase
   {
    public:
-    Var(const T &init = {})
+    Var() = default;
+
+    Var(const T &init)
         : m_value(init)
     {
     }
