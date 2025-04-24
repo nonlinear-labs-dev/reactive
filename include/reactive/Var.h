@@ -110,7 +110,7 @@ namespace Reactive
     }
 
    private:
-    T m_value;
+    T m_value {};
 
     template <typename> friend class Latch;
   };
