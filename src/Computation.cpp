@@ -77,4 +77,12 @@ namespace Reactive
   {
     return m_depth;
   }
+
+  void Computation::untracked(Callback &&cb)
+  {
+    Computation *pThis = nullptr;
+    std::swap(tl_currentComputation, pThis);
+    cb();
+    std::swap(tl_currentComputation, pThis);
+  }
 }

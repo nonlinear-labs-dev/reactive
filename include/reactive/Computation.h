@@ -26,6 +26,8 @@ namespace Reactive
     Computation(Invalidateable &owner, Callback &&cb);
     ~Computation();
 
+    static void untracked(Callback &&cb);
+
     void execute();
     void invalidate();
 
