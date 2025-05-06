@@ -21,13 +21,12 @@ namespace Reactive
 
       void unregisterComputation(Computation *c) const;
 
-      virtual void resolveDirtynessDownstream() {};
+      virtual void resolveDirtynessDownstream() { };
 
      protected:
       void onReadAccess() const;
       void onWriteAccess() const;
 
-     private:
       enum ComputationLifeCycleState
       {
         Alive,
@@ -42,6 +41,8 @@ namespace Reactive
   template <typename T> class Var : public Detail::VarBase
   {
    public:
+    using Type = T;
+
     Var() = default;
 
     Var(const T &init)
