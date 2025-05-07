@@ -11,10 +11,12 @@ TEST_CASE("Latch")
   {
     const std::string &getValue() const
     {
-      return m_latch.doLatch([this] {
-        m_executionCount++;
-        return std::to_string(m_value);
-      });
+      return m_latch.doLatch(
+          [this]
+          {
+            m_executionCount++;
+            return std::to_string(m_value);
+          });
     }
 
     Var<int> m_value { 0 };
@@ -97,14 +99,18 @@ TEST_CASE("Latch")
     Computations outer;
     Computations inner;
 
-    outer.add([&] {
-      outerCounter++;
+    outer.add(
+        [&]
+        {
+          outerCounter++;
 
-      inner.add([&] {
-        innerCounter++;
-        readValue = user.getValue();
-      });
-    });
+          inner.add(
+              [&]
+              {
+                innerCounter++;
+                readValue = user.getValue();
+              });
+        });
 
     REQUIRE(innerCounter == 1);
     REQUIRE(outerCounter == 1);
@@ -146,17 +152,21 @@ TEST_CASE("Computation sorting")
     Computations outer;
     std::unique_ptr<Computations> inner;
 
-    outer.add([&] {
-      outerCalls++;
-      usedFromOuter.get();
+    outer.add(
+        [&]
+        {
+          outerCalls++;
+          usedFromOuter.get();
 
-      inner = std::make_unique<Computations>();
+          inner = std::make_unique<Computations>();
 
-      inner->add([&] {
-        innerCalls++;
-        usedFromInner.get();
-      });
-    });
+          inner->add(
+              [&]
+              {
+                innerCalls++;
+                usedFromInner.get();
+              });
+        });
 
     AND_WHEN("Both computations are invalidated, inner first")
     {
@@ -178,5 +188,46 @@ TEST_CASE("Computation sorting")
         CHECK(innerCalls == 2);
       }
     }
+  }
+}
+
+TEST_CASE("Crash in mosaik")
+{
+  Reactive::Var<int> var { 0 };
+  Reactive::Latch<int> innerLatch;
+  Reactive::Latch<int> outerLatch;
+
+  auto getInnerValue = [&] { return innerLatch.doLatch([&] { return var.get() / 2; }); };
+
+  auto getOuterValue = [&] { return outerLatch.doLatch([&] { return getInnerValue() / 4; }); };
+
+  Reactive::Computations outerComputations;
+  outerComputations.add(
+      [&, innerComputations = Reactive::Computations {}]
+      {
+        for(int i = 0; i < 2; i++)
+        {
+          getOuterValue();
+          innerComputations.add(
+              [&, innermostComputations = Reactive::Computations {}]
+              {
+                for(int i = 0; i < 2; i++)
+                {
+                  getInnerValue();
+                  innermostComputations.add(
+                      [&]
+                      {
+                        getOuterValue();
+                        getInnerValue();
+                      });
+                }
+              });
+        }
+      });
+
+  for(int i = 0; i < 100; i++)
+  {
+    Reactive::Deferrer deferrer;
+    var = i;
   }
 }
