@@ -3,6 +3,7 @@
 #include <memory>
 #include <unordered_map>
 #include <utility>
+#include <functional>
 
 namespace Reactive
 {
@@ -21,7 +22,7 @@ namespace Reactive
 
       void unregisterComputation(Computation *c) const;
 
-      virtual void resolveDirtynessDownstream() { };
+      virtual void resolveDirtynessDownstream() {};
 
      protected:
       void onReadAccess() const;
@@ -104,7 +105,7 @@ namespace Reactive
       return m_value == other;
     }
 
-    template <typename F> void modify(const F &func)
+    template <typename F> void modify(F &&func)
     {
       func(m_value);
       onWriteAccess();
