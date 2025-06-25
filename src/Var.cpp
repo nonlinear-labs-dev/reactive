@@ -10,17 +10,22 @@ namespace Reactive::Detail
 
   VarBase::~VarBase()
   {
+    assert(!m_computationsLocked);
     for(auto c : m_computations)
-      if(!c.second)
+      if(c.second == Alive)
         c.first->unregisterVar(this);
   }
 
   void VarBase::unregisterComputation(Computation *c) const
   {
     if(m_computationsLocked)
+    {
       m_computations[c] = Doomed;
+    }
     else
+    {
       m_computations.erase(c);
+    }
   }
 
   void VarBase::onReadAccess() const
@@ -28,7 +33,8 @@ namespace Reactive::Detail
     if(auto c = Computation::getCurrentComputation())
     {
       assert(!m_computationsLocked);
-      m_computations.insert({ c, Alive });
+      if(!m_computations.insert({ c, Alive }).second)
+        m_computations[c] = Alive;
       c->registerVar(const_cast<VarBase *>(this));
     }
   }
@@ -41,7 +47,7 @@ namespace Reactive::Detail
     m_computationsLocked = true;
 
     for(auto c : m_computations)
-      if(c.first != current && !c.second)
+      if(c.first != current && c.second == Alive)
         c.first->invalidate();
 
     erase_if(m_computations, [](const auto &c) { return c.second == Doomed; });
