@@ -97,11 +97,13 @@ namespace Reactive
 
     bool operator==(const Var<T> &other) const
     {
+      onReadAccess();
       return m_value == other.m_value;
     }
 
     bool operator==(const T &other) const
     {
+      onReadAccess();
       return m_value == other;
     }
 
