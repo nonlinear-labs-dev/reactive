@@ -37,7 +37,7 @@ namespace Reactive
         if(!lowestSoFar)
           return my;
 
-        return my->getDepth() < lowestSoFar->getDepth() ? lowestSoFar : my;
+        return my->getDepth() < lowestSoFar->getDepth() ? my : lowestSoFar;
       }
     };
 

@@ -113,6 +113,12 @@ namespace Reactive
       onWriteAccess();
     }
 
+    template <typename F> void modifyAndInvalidateIf(F &&func)
+    {
+      if(func(m_value))
+        onWriteAccess();
+    }
+
    private:
     T m_value {};
 
