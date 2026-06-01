@@ -65,7 +65,7 @@ namespace Reactive
     invalidate();
   }
 
-  void Computation::resolveDirtynessDownstream()
+  void Computation::resolveDirtynessDownstream() const
   {
     Deferrer deferrer;
     for(const auto v : m_registeredVars)

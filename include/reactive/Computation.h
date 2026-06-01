@@ -32,7 +32,7 @@ namespace Reactive
 
     void registerVar(Detail::VarBase *v);
     void unregisterVar(Detail::VarBase *v);
-    void resolveDirtynessDownstream();
+    void resolveDirtynessDownstream() const;
 
     uint32_t getDepth() const;
 

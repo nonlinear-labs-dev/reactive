@@ -33,7 +33,7 @@ namespace Reactive
   void Computations::Impl::invalidate(Computation *c)
   {
 
-    if(const auto it = std::ranges::find_if(m_computations, [&](auto &m) { return m.get() == c; });
+    if(const auto it = std::ranges::find_if(m_computations, [c](auto &m) { return m.get() == c; });
        it != m_computations.end())
     {
       m_pending.push_back(std::move(*it));
@@ -51,7 +51,7 @@ namespace Reactive
   void Computations::Impl::doDeferred(Computation *c)
   {
 
-    if(const auto it = std::ranges::find_if(m_pending, [&](auto &m) { return m.get() == c; }); it != m_pending.end())
+    if(const auto it = std::ranges::find_if(m_pending, [c](auto &m) { return m.get() == c; }); it != m_pending.end())
     {
       auto p = std::move(*it);
       m_pending.erase(it);
