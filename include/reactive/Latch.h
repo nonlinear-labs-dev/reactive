@@ -1,20 +1,20 @@
 #pragma once
 
-#include "Invalidateable.h"
-#include "Var.h"
-#include "Computation.h"
-#include "Deferrable.h"
-#include "Deferrer.h"
+#include <reactive/Computation.h>
+#include <reactive/Deferrable.h>
+#include <reactive/Deferrer.h>
+#include <reactive/Invalidateable.h>
+#include <reactive/Var.h>
 
 namespace Reactive
 {
   template <typename T> class Latch : public Invalidateable
   {
-    struct _Deferrable : Deferrable
+    struct DeferrableForSelf : Deferrable
     {
       Latch& self;
 
-      _Deferrable(Latch& _latch)
+      DeferrableForSelf(Latch& _latch)
           : self(_latch)
       {
       }
@@ -43,11 +43,11 @@ namespace Reactive
 
    public:
     Latch()
-        : m_deferrable(std::make_shared<_Deferrable>(*this))
+        : m_deferrable(std::make_shared<DeferrableForSelf>(*this))
     {
     }
 
-    ~Latch()
+    ~Latch() override
     {
       m_computation.reset();
     }

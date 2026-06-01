@@ -13,7 +13,7 @@ namespace Reactive
     Deferrer();
     ~Deferrer();
 
-    static void add(std::shared_ptr<Deferrable> pending);
+    static void add(const std::shared_ptr<Deferrable> &pending);
 
    private:
     std::vector<std::weak_ptr<Deferrable>> m_pending;

@@ -1,8 +1,8 @@
 #include <reactive/Var.h>
-#include <reactive/Deferrer.h>
-#include <reactive/Computation.h>
 
 #include <cassert>
+#include <reactive/Computation.h>
+#include <reactive/Deferrer.h>
 
 namespace Reactive::Detail
 {
@@ -42,13 +42,13 @@ namespace Reactive::Detail
   void VarBase::onWriteAccess() const
   {
     Deferrer deferrer;
-    auto current = Computation::getCurrentComputation();
+    const auto current = Computation::getCurrentComputation();
 
     m_computationsLocked = true;
 
-    for(auto c : m_computations)
-      if(c.first != current && c.second == Alive)
-        c.first->invalidate();
+    for(auto [computation, lifeCycleState] : m_computations)
+      if(computation != current && lifeCycleState == Alive)
+        computation->invalidate();
 
     erase_if(m_computations, [](const auto &c) { return c.second == Doomed; });
 

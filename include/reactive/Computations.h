@@ -5,8 +5,6 @@
 
 namespace Reactive
 {
-  class ComputationsImpl;
-
   class Computations
   {
    public:
@@ -15,6 +13,7 @@ namespace Reactive
     void add(std::function<void()> &&cb) const;
 
    private:
-    std::shared_ptr<ComputationsImpl> m_impl;
+    struct Impl;
+    std::shared_ptr<Impl> m_impl;
   };
 }

@@ -1,15 +1,11 @@
-#include "reactive/Computation.h"
-
 #include <reactive/Deferrer.h>
-#include <reactive/Deferrable.h>
 
 #include <algorithm>
-#include <chrono>
-#include <iostream>
+#include <reactive/Computation.h>
+#include <reactive/Deferrable.h>
 
 namespace Reactive
 {
-  using namespace std::chrono_literals;
   thread_local Deferrer *tl_deferrer;
 
   Deferrer::Deferrer()
@@ -52,7 +48,7 @@ namespace Reactive
     }
   }
 
-  void Deferrer::add(std::shared_ptr<Deferrable> pending)
+  void Deferrer::add(const std::shared_ptr<Deferrable> &pending)
   {
     if(!tl_deferrer)
       pending->doDeferred(pending->getLowest(nullptr));
