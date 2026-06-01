@@ -1,11 +1,9 @@
-#include "reactive/Computation.h"
-
 #include <reactive/Deferrer.h>
-#include <reactive/Deferrable.h>
 
 #include <algorithm>
 #include <chrono>
-#include <iostream>
+#include <reactive/Computation.h>
+#include <reactive/Deferrable.h>
 
 namespace Reactive
 {

@@ -1,11 +1,10 @@
-#include <reactive/Var.h>
-#include <reactive/Computations.h>
 #include <reactive/Computation.h>
 
-#include "ComputationsImpl.h"
-#include "reactive/Deferrer.h"
-
 #include <cassert>
+#include <reactive/Computations.h>
+#include <reactive/Deferrer.h>
+#include <reactive/Invalidateable.h>
+#include <reactive/Var.h>
 
 namespace Reactive
 {

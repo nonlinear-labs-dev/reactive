@@ -19,8 +19,6 @@ add_library(reactive STATIC
         ${PUBLIC_HEADERS}
         src/Computation.cpp
         src/Computations.cpp
-        src/ComputationsImpl.cpp
-        src/ComputationsImpl.h
         src/Deferrer.cpp
         src/Var.cpp
 )

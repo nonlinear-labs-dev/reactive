@@ -1,14 +1,11 @@
 #pragma once
 
-#include "Invalidateable.h"
-
-#include <unordered_set>
+#include <cstdint>
 #include <functional>
-#include <stdint.h>
+#include <unordered_set>
 
 namespace Reactive
 {
-  class ComputationsImpl;
   class Invalidateable;
 
   namespace Detail
