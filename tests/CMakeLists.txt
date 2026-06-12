@@ -18,6 +18,7 @@ endif()
 add_executable(reactive-tests
     LatchTests.cpp
     ReactiveTests.cpp
+    OrderingTests.cpp
 )
 
 target_include_directories(reactive-tests PUBLIC ${CATCH_LIB_INCLUDE_DIRS} ./ ../src ../include)

@@ -6,6 +6,8 @@
 #include <algorithm>
 #include <chrono>
 #include <iostream>
+#include <queue>
+#include <vector>
 
 namespace Reactive
 {
@@ -20,35 +22,71 @@ namespace Reactive
 
   Deferrer::~Deferrer()
   {
-    if(tl_deferrer == this)
+    if(tl_deferrer != this)
+      return;
+
+    tl_deferrer = nullptr;
+
+    auto cp = std::move(m_pending);
+
+    // Process the pending deferrables strictly in ascending computation depth (parents
+    // before children), one computation at a time, until nothing dirty remains - exactly
+    // like the previous implementation. The previous code re-scanned ALL deferrables to
+    // find the global minimum on every single step, which is O(pending^2) and made large
+    // invalidation batches (e.g. rotating every step LED of every selected tile) freeze
+    // the UI for seconds. Instead we keep the deferrables in a depth-ordered priority
+    // queue and only re-file the one we just touched.
+    //
+    // New invalidations triggered while re-running a computation are collected by the
+    // nested Deferrer created around doDeferred() and flushed recursively, so they never
+    // enter this queue - identical to before. getLowest() is therefore re-queried lazily
+    // after each step to pick up any remaining or freshly-lowered pending work.
+    struct Entry
     {
-      tl_deferrer = nullptr;
+      uint32_t depth;
+      size_t index;
+    };
 
-      auto cp = std::move(m_pending);
+    auto deeper = [](const Entry &a, const Entry &b) { return a.depth > b.depth; };
+    std::priority_queue<Entry, std::vector<Entry>, decltype(deeper)> queue(deeper);
 
-      while(true)
+    auto enqueueLowestOf = [&](size_t index)
+    {
+      if(auto s = cp[index].lock())
+        if(auto c = s->getLowest(nullptr))
+          queue.push({ c->getDepth(), index });
+    };
+
+    for(size_t i = 0; i < cp.size(); i++)
+      enqueueLowestOf(i);
+
+    while(!queue.empty())
+    {
+      auto entry = queue.top();
+      queue.pop();
+
+      auto s = cp[entry.index].lock();
+      if(!s)
+        continue;
+
+      auto c = s->getLowest(nullptr);
+      if(!c)
+        continue;  // already drained in the meantime
+
+      if(c->getDepth() != entry.depth)
       {
-        std::pair<Deferrable *, Computation *> lowestDepth = { nullptr, nullptr };
-
-        for(auto &w : cp)
-        {
-          if(auto s = w.lock())
-          {
-            auto newLowestDepth = s->getLowest(lowestDepth.second);
-
-            if(newLowestDepth != lowestDepth.second)
-              lowestDepth = { s.get(), newLowestDepth };
-          }
-        }
-
-        if(lowestDepth.first && lowestDepth.second)
-        {
-          Deferrer deferrer;
-          lowestDepth.first->doDeferred(lowestDepth.second);
-        }
-        else
-          break;
+        // Its lowest pending depth changed (e.g. it was re-invalidated at a lower depth);
+        // re-file it so it is still processed in correct global depth order.
+        queue.push({ c->getDepth(), entry.index });
+        continue;
       }
+
+      {
+        Deferrer deferrer;
+        s->doDeferred(c);
+      }
+
+      enqueueLowestOf(entry.index);
     }
   }
 
