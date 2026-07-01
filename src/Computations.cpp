@@ -9,11 +9,20 @@ namespace Reactive
   {
   }
 
-  Computations::~Computations() = default;
+  Computations::~Computations()
+  {
+    if(m_impl)
+      m_impl->cancelPending();
+  }
 
   void Computations::add(std::function<void()> &&cb) const
   {
     m_impl->add(std::move(cb));
+  }
+
+  void Computations::cancelPending() const
+  {
+    m_impl->cancelPending();
   }
 
 }

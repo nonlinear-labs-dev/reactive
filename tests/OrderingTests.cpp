@@ -169,3 +169,49 @@ TEST_CASE("two independent latch chains of different depth in one batch")
   CHECK(deepResult == 8);   // 7 + 1
   CHECK(flatResult == 14);  // 7 * 2
 }
+
+TEST_CASE("destroying computations before deferrer flush drops pending callbacks")
+{
+  Var<int> v { 0 };
+  int runs = 0;
+
+  {
+    Deferrer deferrer;
+    {
+      Computations widget;
+      widget.add(
+          [&]
+          {
+            runs++;
+            (void)v.get();
+          });
+      REQUIRE(runs == 1);
+      v = 1;
+    }
+  }
+
+  CHECK(runs == 1);
+}
+
+TEST_CASE("cancelPending drops deferred callbacks without running them")
+{
+  Var<int> v { 0 };
+  int runs = 0;
+
+  auto widget = std::make_unique<Computations>();
+  widget->add(
+      [&]
+      {
+        runs++;
+        (void)v.get();
+      });
+  REQUIRE(runs == 1);
+
+  {
+    Deferrer deferrer;
+    v = 1;
+    widget->cancelPending();
+  }
+
+  CHECK(runs == 1);
+}

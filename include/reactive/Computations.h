@@ -13,6 +13,7 @@ namespace Reactive
     Computations();
     virtual ~Computations();
     void add(std::function<void()> &&cb) const;
+    void cancelPending() const;
 
    private:
     std::shared_ptr<ComputationsImpl> m_impl;

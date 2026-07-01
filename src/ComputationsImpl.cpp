@@ -18,38 +18,48 @@ namespace Reactive
 
   void ComputationsImpl::invalidate(Computation *c)
   {
-    const bool wasEmpty = m_pending.empty();
+    if(const auto it = m_computations.find(c); it != m_computations.end())
+    {
+      auto node = std::move(it->second);
+      auto *raw = node.get();
+      m_computations.erase(it);
 
-    m_pending.insert({ c->getDepth(), c });
+      const bool wasEmpty = m_pendingOrder.empty();
+      m_pending.emplace(raw, std::move(node));
+      m_pendingOrder.insert({ raw->getDepth(), raw });
 
-    if(wasEmpty && !m_pending.empty())
-      Deferrer::add(shared_from_this());
+      if(wasEmpty)
+        Deferrer::add(shared_from_this());
+    }
   }
 
   void ComputationsImpl::resolveDirtynessDownstream()
   {
   }
 
+  void ComputationsImpl::cancelPending()
+  {
+    m_pendingOrder.clear();
+    m_pending.clear();
+  }
+
   void ComputationsImpl::doDeferred(Computation *c)
   {
-    m_pending.erase({ c->getDepth(), c });
-
-    auto it = m_computations.find(c);
-
-    if(it != m_computations.end())
+    if(const auto it = m_pending.find(c); it != m_pending.end())
     {
-      auto cb = std::move(c->expropriateCallback());
-      m_computations.erase(it);
+      m_pendingOrder.erase({ c->getDepth(), c });
+      auto cb = std::move(it->second->expropriateCallback());
+      m_pending.erase(it);
       add(std::move(cb));
     }
   }
 
   Computation *ComputationsImpl::getLowest(Computation *lowestSoFar) const
   {
-    if(m_pending.empty())
+    if(m_pendingOrder.empty())
       return lowestSoFar;
 
-    auto *my = m_pending.begin()->second;
+    auto *my = m_pendingOrder.begin()->second;
 
     if(!lowestSoFar)
       return my;
