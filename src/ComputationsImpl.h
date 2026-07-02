@@ -21,6 +21,7 @@ namespace Reactive
     virtual ~ComputationsImpl();
 
     void add(std::function<void()> &&cb);
+    void clear();
     void invalidate(Computation *c) override;
     void resolveDirtynessDownstream() override;
     void doDeferred(Computation *c) override;

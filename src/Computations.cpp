@@ -9,7 +9,10 @@ namespace Reactive
   {
   }
 
-  Computations::~Computations() = default;
+  Computations::~Computations()
+  {
+    m_impl->clear();
+  }
 
   void Computations::add(std::function<void()> &&cb) const
   {

@@ -16,6 +16,16 @@ namespace Reactive
     raw->execute();
   }
 
+  void ComputationsImpl::clear()
+  {
+    // Called when the owning Computations dies. A Deferrer flush may still hold a
+    // shared_ptr to this impl (it locks the weak_ptr while processing), keeping it
+    // alive beyond its owner. Without retiring the computations here, the remainder
+    // of that flush would re-run still-pending computations of the dead owner.
+    m_pending.clear();
+    m_computations.clear();
+  }
+
   void ComputationsImpl::invalidate(Computation *c)
   {
     const bool wasEmpty = m_pending.empty();
