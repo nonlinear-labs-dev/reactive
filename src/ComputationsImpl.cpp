@@ -10,7 +10,16 @@ namespace Reactive
 
   void ComputationsImpl::add(std::function<void()> &&cb)
   {
-    auto computation = std::make_unique<Computation>(*this, std::move(cb));
+    add(std::make_unique<Computation>(*this, std::move(cb)));
+  }
+
+  void ComputationsImpl::add(std::function<void()> &&cb, uint32_t depth)
+  {
+    add(std::make_unique<Computation>(*this, std::move(cb), depth));
+  }
+
+  void ComputationsImpl::add(std::unique_ptr<Computation> &&computation)
+  {
     auto *raw = computation.get();
     m_computations.emplace(raw, std::move(computation));
     raw->execute();
@@ -34,13 +43,12 @@ namespace Reactive
   {
     m_pending.erase({ c->getDepth(), c });
 
-    auto it = m_computations.find(c);
-
-    if(it != m_computations.end())
+    if(const auto it = m_computations.find(c); it != m_computations.end())
     {
       auto cb = std::move(c->expropriateCallback());
+      const auto oldDepth = c->getDepth();
       m_computations.erase(it);
-      add(std::move(cb));
+      add(std::move(cb), oldDepth);
     }
   }
 

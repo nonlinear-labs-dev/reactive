@@ -97,4 +97,9 @@ namespace Reactive
     else
       tl_deferrer->m_pending.push_back(pending);
   }
+
+  const std::vector<std::weak_ptr<Deferrable>> &Deferrer::getPending() const
+  {
+    return m_pending;
+  }
 }

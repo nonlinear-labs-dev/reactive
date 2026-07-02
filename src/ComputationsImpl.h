@@ -14,19 +14,23 @@ namespace Reactive
 {
   class Computation;
 
-  class ComputationsImpl : public std::enable_shared_from_this<ComputationsImpl>, public Invalidateable, public Deferrable
+  class ComputationsImpl : public std::enable_shared_from_this<ComputationsImpl>,
+                           public Invalidateable,
+                           public Deferrable
   {
    public:
     ComputationsImpl();
     virtual ~ComputationsImpl();
 
     void add(std::function<void()> &&cb);
+    void add(std::function<void()> &&cb, uint32_t depth);
     void invalidate(Computation *c) override;
     void resolveDirtynessDownstream() override;
     void doDeferred(Computation *c) override;
     Computation *getLowest(Computation *lowestSoFar) const override;
 
    private:
+    void add(std::unique_ptr<Computation> &&computation);
     // Ownership of all live computations, keyed by pointer for O(1) lookup. The previous
     // implementation moved unique_ptrs between two vectors and located them with a linear
     // std::find_if on every invalidate/doDeferred - O(n) per call, O(n^2) when a whole

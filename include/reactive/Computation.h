@@ -24,6 +24,7 @@ namespace Reactive
     static Computation *getCurrentComputation();
 
     Computation(Invalidateable &owner, Callback &&cb);
+    Computation(Invalidateable &owner, Callback &&cb, uint32_t depth);
     ~Computation();
 
     static void untracked(Callback &&cb);

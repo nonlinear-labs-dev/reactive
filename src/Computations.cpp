@@ -16,4 +16,9 @@ namespace Reactive
     m_impl->add(std::move(cb));
   }
 
+  void Computations::add(std::function<void()> &&cb, uint32_t depth) const
+  {
+    m_impl->add(std::move(cb), depth);
+  }
+
 }
