@@ -12,9 +12,14 @@ namespace Reactive
   thread_local Computation *tl_currentComputation;
 
   Computation::Computation(Invalidateable &owner, Callback &&cb)
+      : Computation(owner, std::move(cb), getCurrentComputation() ? getCurrentComputation()->m_depth + 1 : 1)
+  {
+  }
+
+  Computation::Computation(Invalidateable &owner, Callback &&cb, uint32_t depth)
       : m_owner(owner)
       , m_cb(std::move(cb))
-      , m_depth(getCurrentComputation() ? getCurrentComputation()->m_depth + 1 : 1)
+      , m_depth(depth)
   {
   }
 

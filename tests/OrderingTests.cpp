@@ -1,3 +1,5 @@
+#include "ComputationsImpl.h"
+
 #include <catch2/catch_all.hpp>
 #include <reactive/Computations.h>
 #include <reactive/Deferrer.h>
@@ -150,11 +152,7 @@ TEST_CASE("two independent latch chains of different depth in one batch")
   int deepResult = 0;
   int flatResult = 0;
 
-  deep.add(
-      [&]
-      {
-        deepResult = deepOuter.doLatch([&] { return deepInner.doLatch([&] { return var.get() + 1; }); });
-      });
+  deep.add([&] { deepResult = deepOuter.doLatch([&] { return deepInner.doLatch([&] { return var.get() + 1; }); }); });
 
   flat.add([&] { flatResult = shallow.doLatch([&] { return var.get() * 2; }); });
 
@@ -168,4 +166,103 @@ TEST_CASE("two independent latch chains of different depth in one batch")
 
   CHECK(deepResult == 8);   // 7 + 1
   CHECK(flatResult == 14);  // 7 * 2
+}
+
+TEST_CASE("destroying computations before deferrer flush drops pending callbacks")
+{
+  Var<int> v { 0 };
+  int runs = 0;
+
+  {
+    Deferrer deferrer;
+    {
+      Computations widget;
+      widget.add(
+          [&]
+          {
+            runs++;
+            (void) v.get();
+          });
+      REQUIRE(runs == 1);
+      v = 1;
+    }
+  }
+
+  CHECK(runs == 1);
+}
+
+TEST_CASE("the lowest computation is ran first when both computations are invalided")
+{
+  Var varA { 0 };
+  Var varB { 0 };
+
+  std::unique_ptr<Computations> computationsB;
+
+  WHEN("a has cb")
+  {
+    int aRun = 0;
+    int bRun = 0;
+
+    Computations computationsA;
+    computationsA.add(
+        [&]
+        {
+          computationsB = std::make_unique<Computations>();
+          aRun++;
+          (void) varA.get();
+          computationsB->add(
+              [&]
+              {
+                bRun++;
+                (void) varB.get();
+              });
+        });
+
+    REQUIRE(aRun == 1);
+    REQUIRE(bRun == 1);
+
+    WHEN("Deferrer changes x and y")
+    {
+      {
+        Deferrer def;
+        varB = 1;
+        varA = 1;
+      }
+
+      CHECK(aRun == 2);
+      CHECK(bRun == 2);
+    }
+
+    WHEN("Deferrer changes x")
+    {
+      {
+        Deferrer def;
+        varB = 1;
+      }
+
+      CHECK(aRun == 1);
+      CHECK(bRun == 2);
+
+      {
+        Deferrer def;
+        varA = 2;
+        varB = 2;
+
+        THEN("Depths are preserved")
+        {
+          const auto& pending = def.getPending();
+          auto firstComputations = dynamic_cast<ComputationsImpl*>(pending.front().lock().get());
+          auto firstComputation = firstComputations->getLowest(nullptr);
+
+          auto secondComputations = dynamic_cast<ComputationsImpl*>(pending.back().lock().get());
+          auto secondComputation = secondComputations->getLowest(nullptr);
+
+          CHECK(secondComputation->getDepth() != firstComputation->getDepth());
+        }
+      }
+
+      CHECK(aRun == 2);
+      CHECK(bRun == 3);
+    }
+  }
 }
