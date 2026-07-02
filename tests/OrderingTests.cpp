@@ -168,6 +168,21 @@ TEST_CASE("two independent latch chains of different depth in one batch")
   CHECK(flatResult == 14);  // 7 * 2
 }
 
+TEST_CASE("destroying latch before deferrer flush does not crash")
+{
+  Var<int> v { 0 };
+  auto latch = std::make_unique<Latch<int>>();
+
+  const int result = latch->doLatch([&] { return v.get(); });
+  REQUIRE(result == 0);
+
+  {
+    Deferrer deferrer;
+    v = 1;
+    latch.reset();
+  }
+}
+
 TEST_CASE("destroying computations before deferrer flush drops pending callbacks")
 {
   Var<int> v { 0 };

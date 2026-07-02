@@ -9,6 +9,7 @@ namespace Reactive
   class Deferrable
   {
    public:
+    virtual ~Deferrable() = default;
     Deferrable() = default;
 
     virtual Computation *getLowest(Computation *lowestSoFar) const = 0;

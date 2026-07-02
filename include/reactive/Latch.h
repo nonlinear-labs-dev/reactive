@@ -6,49 +6,68 @@
 #include "Deferrable.h"
 #include "Deferrer.h"
 
+#include <memory>
+
 namespace Reactive
 {
   template <typename T> class Latch : public Invalidateable
   {
+    struct LatchLifetime
+    {
+      bool alive = true;
+    };
+
     struct _Deferrable : Deferrable
     {
+      std::shared_ptr<LatchLifetime> m_lifetime;
       Latch& self;
 
-      _Deferrable(Latch& _latch)
-          : self(_latch)
+      _Deferrable(std::shared_ptr<LatchLifetime> lifetime, Latch& latch)
+          : m_lifetime(std::move(lifetime))
+          , self(latch)
       {
       }
 
       void doDeferred(Computation*) override
       {
-        self.execute();
+        if(m_lifetime->alive)
+          self.execute();
       }
 
       Computation* getLowest(Computation* lowestSoFar) const override
       {
-        if(!self.m_dirty)
-          self.resolveDirtynessDownstream();
+        if(m_lifetime->alive)
+        {
+          if(!self.m_dirty)
+            self.resolveDirtynessDownstream();
 
-        if(!self.m_dirty)
+          if(self.m_dirty)
+          {
+            auto my = self.m_computation.get();
+
+            if(lowestSoFar)
+              return my->getDepth() < lowestSoFar->getDepth() ? my : lowestSoFar;
+
+            return my;
+          }
+
           return lowestSoFar;
+        }
 
-        auto my = self.m_computation.get();
-
-        if(!lowestSoFar)
-          return my;
-
-        return my->getDepth() < lowestSoFar->getDepth() ? my : lowestSoFar;
+        return nullptr;
       }
     };
 
    public:
     Latch()
-        : m_deferrable(std::make_shared<_Deferrable>(*this))
+        : m_lifetime(std::make_shared<LatchLifetime>())
+        , m_deferrable(std::make_shared<_Deferrable>(m_lifetime, *this))
     {
     }
 
-    ~Latch()
+    ~Latch() override
     {
+      m_lifetime->alive = false;
       m_computation.reset();
     }
 
@@ -63,8 +82,11 @@ namespace Reactive
 
     void invalidate(Computation* comp) override
     {
-      m_dirty = true;
-      Deferrer::add(m_deferrable);
+      if(m_lifetime->alive)
+      {
+        m_dirty = true;
+        Deferrer::add(m_deferrable);
+      }
     }
 
     void resolveDirtynessDownstream() override
@@ -89,13 +111,14 @@ namespace Reactive
       }
     }
 
+    std::shared_ptr<LatchLifetime> m_lifetime;
     std::shared_ptr<Deferrable> m_deferrable;
     std::unique_ptr<Computation> m_computation;
 
     struct LatchVar : Var<T>
     {
       Latch& m_latch;
-      LatchVar(Latch& latch)
+      explicit LatchVar(Latch& latch)
           : m_latch(latch)
       {
       }
