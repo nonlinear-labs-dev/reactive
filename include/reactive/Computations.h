@@ -2,6 +2,7 @@
 
 #include <functional>
 #include <memory>
+#include <cstdint>
 
 namespace Reactive
 {
