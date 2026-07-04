@@ -98,6 +98,26 @@ namespace Reactive
       tl_deferrer->m_pending.push_back(pending);
   }
 
+  void Deferrer::remove(const std::shared_ptr<Deferrable>& pending)
+  {
+    if(!tl_deferrer)
+      return;
+
+    auto& queue = tl_deferrer->m_pending;
+    queue.erase(
+        std::remove_if(
+            queue.begin(),
+            queue.end(),
+            [&](const std::weak_ptr<Deferrable>& entry)
+            {
+              if(const auto locked = entry.lock())
+                return locked == pending;
+
+              return false;
+            }),
+        queue.end());
+  }
+
   const std::vector<std::weak_ptr<Deferrable>> &Deferrer::getPending() const
   {
     return m_pending;

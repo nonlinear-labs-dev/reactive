@@ -14,5 +14,6 @@ namespace Reactive
 
     virtual Computation *getLowest(Computation *lowestSoFar) const = 0;
     virtual void doDeferred(Computation *c) = 0;
+    virtual void clear() {}
   };
 }

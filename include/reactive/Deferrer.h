@@ -14,6 +14,7 @@ namespace Reactive
     ~Deferrer();
 
     static void add(std::shared_ptr<Deferrable> pending);
+    static void remove(const std::shared_ptr<Deferrable>& pending);
     [[nodiscard]] const std::vector<std::weak_ptr<Deferrable>>& getPending() const;
 
    private:
