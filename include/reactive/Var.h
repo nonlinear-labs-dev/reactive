@@ -1,9 +1,8 @@
 #pragma once
 
-#include <memory>
+#include <functional>
 #include <unordered_map>
 #include <utility>
-#include <functional>
 
 namespace Reactive
 {
@@ -58,14 +57,14 @@ namespace Reactive
 
     ~Var() override = default;
 
-    Var<T> &operator=(const T &v)
+    Var &operator=(const T &v)
     {
       if(std::exchange(m_value, v) != v)
         onWriteAccess();
       return *this;
     }
 
-    Var<T> &operator=(T &&v)
+    Var &operator=(T &&v)
     {
       bool invalidate = true;
       if constexpr(requires { m_value != v; })
@@ -95,7 +94,7 @@ namespace Reactive
       return m_value;
     }
 
-    bool operator==(const Var<T> &other) const
+    bool operator==(const Var &other) const
     {
       onReadAccess();
       return m_value == other.m_value;

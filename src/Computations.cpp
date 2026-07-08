@@ -23,5 +23,4 @@ namespace Reactive
   {
     m_impl->add(std::move(cb), depth);
   }
-
 }

@@ -4,14 +4,11 @@
 #include <reactive/Deferrable.h>
 
 #include <algorithm>
-#include <chrono>
-#include <iostream>
 #include <queue>
 #include <vector>
 
 namespace Reactive
 {
-  using namespace std::chrono_literals;
   thread_local Deferrer *tl_deferrer;
 
   Deferrer::Deferrer()
@@ -34,7 +31,7 @@ namespace Reactive
     // like the previous implementation. The previous code re-scanned ALL deferrables to
     // find the global minimum on every single step, which is O(pending^2) and made large
     // invalidation batches (e.g. rotating every step LED of every selected tile) freeze
-    // the UI for seconds. Instead we keep the deferrables in a depth-ordered priority
+    // the UI for seconds. Instead, we keep the deferrables in a depth-ordered priority
     // queue and only re-file the one we just touched.
     //
     // New invalidations triggered while re-running a computation are collected by the
@@ -90,7 +87,7 @@ namespace Reactive
     }
   }
 
-  void Deferrer::add(std::shared_ptr<Deferrable> pending)
+  void Deferrer::add(const std::shared_ptr<Deferrable>& pending)
   {
     if(!tl_deferrer)
       pending->doDeferred(pending->getLowest(nullptr));
@@ -104,18 +101,15 @@ namespace Reactive
       return;
 
     auto& queue = tl_deferrer->m_pending;
-    queue.erase(
-        std::remove_if(
-            queue.begin(),
-            queue.end(),
-            [&](const std::weak_ptr<Deferrable>& entry)
-            {
-              if(const auto locked = entry.lock())
-                return locked == pending;
+    std::erase_if(
+      queue,
+      [&](const std::weak_ptr<Deferrable>& entry)
+      {
+        if(const auto locked = entry.lock())
+          return locked == pending;
 
-              return false;
-            }),
-        queue.end());
+        return false;
+      });
   }
 
   const std::vector<std::weak_ptr<Deferrable>> &Deferrer::getPending() const

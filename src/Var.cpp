@@ -11,9 +11,9 @@ namespace Reactive::Detail
   VarBase::~VarBase()
   {
     assert(!m_computationsLocked);
-    for(auto c : m_computations)
-      if(c.second == Alive)
-        c.first->unregisterVar(this);
+    for(auto [computation, lifeCycleState] : m_computations)
+      if(lifeCycleState == Alive)
+        computation->unregisterVar(this);
   }
 
   void VarBase::unregisterComputation(Computation *c) const
@@ -42,13 +42,13 @@ namespace Reactive::Detail
   void VarBase::onWriteAccess() const
   {
     Deferrer deferrer;
-    auto current = Computation::getCurrentComputation();
+    const auto current = Computation::getCurrentComputation();
 
     m_computationsLocked = true;
 
-    for(auto c : m_computations)
-      if(c.first != current && c.second == Alive)
-        c.first->invalidate();
+    for(auto [computation, lifeCycleState] : m_computations)
+      if(computation != current && lifeCycleState == Alive)
+        computation->invalidate();
 
     erase_if(m_computations, [](const auto &c) { return c.second == Doomed; });
 

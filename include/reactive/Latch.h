@@ -12,12 +12,12 @@ namespace Reactive
 {
   template <typename T> class Latch : public Invalidateable
   {
-    struct _Deferrable : Deferrable
+    struct SelfDeferrable : Deferrable
     {
       Latch& self;
       bool m_cleared = false;
 
-      explicit _Deferrable(Latch& latch)
+      explicit SelfDeferrable(Latch& latch)
           : self(latch)
       {
       }
@@ -57,7 +57,7 @@ namespace Reactive
 
    public:
     Latch()
-        : m_deferrable(std::make_shared<_Deferrable>(*this))
+        : m_deferrable(std::make_shared<SelfDeferrable>(*this))
     {
     }
 
@@ -108,7 +108,7 @@ namespace Reactive
       }
     }
 
-    std::shared_ptr<_Deferrable> m_deferrable;
+    std::shared_ptr<SelfDeferrable> m_deferrable;
     std::unique_ptr<Computation> m_computation;
 
     struct LatchVar : Var<T>
