@@ -1,14 +1,11 @@
 #pragma once
 
-#include "Invalidateable.h"
-
-#include <unordered_set>
+#include <cstdint>
 #include <functional>
-#include <stdint.h>
+#include <unordered_set>
 
 namespace Reactive
 {
-  class ComputationsImpl;
   class Invalidateable;
 
   namespace Detail
@@ -36,7 +33,7 @@ namespace Reactive
 
     void registerVar(Detail::VarBase *v);
     void unregisterVar(Detail::VarBase *v);
-    void resolveDirtynessDownstream();
+    void resolveDirtynessDownstream() const;
 
     uint32_t getDepth() const;
 
