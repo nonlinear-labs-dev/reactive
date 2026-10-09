@@ -88,6 +88,12 @@ namespace Reactive
       return m_value;
     }
 
+    const T *operator->() const
+    {
+      onReadAccess();
+      return &m_value;
+    }
+
     const T &get() const
     {
       onReadAccess();
